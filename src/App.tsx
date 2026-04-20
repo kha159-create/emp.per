@@ -152,31 +152,31 @@ export default function App() {
         </header>
 
         {/* 1. Trajectory Chart */}
-        <section className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm space-y-8">
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 relative z-10">
+        <section className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 shadow-sm space-y-6 md:space-y-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-slate-50 rounded-xl">
-                  <TrendingUp className="w-6 h-6 text-indigo-500" />
+                  <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-indigo-500" />
                 </div>
-                <h2 className="text-2xl font-black tracking-tighter text-slate-900 italic">Individual Performance</h2>
+                <h2 className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 italic">Individual Performance</h2>
               </div>
             </div>
             <div className="flex items-center gap-4 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 px-4">
-              <div className="flex items-center bg-white px-4 py-2 rounded-xl border border-indigo-100 shadow-sm gap-2">
+              <div className="flex items-center bg-white px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-indigo-100 shadow-sm gap-2">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full" />
-                <span className="text-[10px] font-black uppercase text-indigo-600 tracking-widest">Al-Aliya</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase text-indigo-600 tracking-widest">Al-Aliya</span>
               </div>
-              <div className="flex items-center px-4 py-2 gap-2 text-slate-400 opacity-60">
+              <div className="flex items-center px-3 md:px-4 py-1.5 md:py-2 gap-2 text-slate-400 opacity-60">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Al-Noor</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Al-Noor</span>
               </div>
             </div>
           </div>
 
-          <div className="h-[400px] w-full">
+          <div className="h-[300px] md:h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={chartData} margin={{ left: -20, right: 10 }}>
                 <defs>
                   <linearGradient id="softAlia" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
@@ -207,56 +207,70 @@ export default function App() {
           </div>
         </section>
 
-        {/* 2. Branch Penetration Chart with Correct Totals */}
-        <section className="bg-white rounded-[2.5rem] p-12 border border-slate-100 shadow-sm relative overflow-hidden">
-          <div className="mb-14 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        {/* 2. Branch Penetration Chart (Responsive) */}
+        <section className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 border border-slate-100 shadow-sm relative overflow-hidden">
+          <div className="mb-10 md:mb-14 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div>
-              <h2 className="text-3xl font-black tracking-tighter text-slate-900 italic mb-2">Monthly Sales</h2>
+              <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 italic mb-2">Monthly Sales</h2>
             </div>
-            <div className="bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
-               <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Audit Verification</p>
-               <div className="text-sm font-bold text-emerald-600 uppercase tracking-widest leading-none flex items-center gap-2">
+            <div className="bg-slate-50 px-4 md:px-6 py-2 md:py-3 rounded-2xl border border-slate-100">
+               <p className="text-[9px] md:text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Audit Verification</p>
+               <div className="text-xs md:text-sm font-bold text-emerald-600 uppercase tracking-widest leading-none flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                  Verified: Apr 2026
                </div>
             </div>
           </div>
 
-          <div className="h-[550px] w-full bg-slate-50/30 rounded-[2.5rem] p-8 border border-slate-100">
+          <div className="h-[400px] md:h-[550px] w-full bg-slate-50/30 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-8 border border-slate-100">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={branchSummary} barGap={10}>
+              <ComposedChart data={branchSummary} barGap={2} margin={{ left: -25, right: -15, top: 40, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 900 }} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6366f1', fontWeight: 900 }} tickFormatter={v => `${Math.round(v/1000).toLocaleString()}k`} />
-                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 900 }} tickFormatter={v => `${Math.round(v).toLocaleString()} Vis.`} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 8, fill: '#94a3b8', fontWeight: 900 }} />
+                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 8, fill: '#6366f1', fontWeight: 900 }} tickFormatter={v => `${Math.round(v/1000)}k`} />
+                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 8, fill: '#94a3b8', fontWeight: 900 }} tickFormatter={v => `${Math.round(v/1000)}k`} />
                 <Tooltip 
                   formatter={(v: number, name: string) => [formatNumber(v), name.includes('Sales') ? 'Sales' : 'Visitors']}
-                  contentStyle={{ borderRadius: '32px', border: 'none', boxShadow: '0 25px 50px rgba(0,0,0,0.05)', padding: '24px' }} 
+                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px rgba(0,0,0,0.05)', padding: '16px' }} 
                   cursor={{fill: '#fff'}} 
                 />
-                <Legend verticalAlign="top" align="right" height={60} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingBottom: '30px', tracking: '0.2em' }} />
+                <Legend 
+                  verticalAlign="top" 
+                  align="center" 
+                  height={120} 
+                  iconType="circle" 
+                  layout="horizontal"
+                  wrapperStyle={{ 
+                    fontSize: '8px', 
+                    fontWeight: 900, 
+                    textTransform: 'uppercase', 
+                    paddingBottom: '20px', 
+                    width: '100%',
+                    left: 0
+                  }} 
+                />
                 
-                <Bar yAxisId="left" dataKey="aliaSales" fill="#c7d2fe" name="Alia Sales" radius={[8, 8, 0, 0]} barSize={25} />
-                <Bar yAxisId="left" dataKey="noorSales" fill="#a7f3d0" name="Noor Sales" radius={[8, 8, 0, 0]} barSize={25} />
+                <Bar yAxisId="left" dataKey="aliaSales" fill="#c7d2fe" name="Alia Sales" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar yAxisId="left" dataKey="noorSales" fill="#a7f3d0" name="Noor Sales" radius={[4, 4, 0, 0]} barSize={12} />
                 
-                <Line yAxisId="right" type="monotone" dataKey="aliaVisitors" stroke="#6366f1" strokeWidth={5} dot={{ r: 6, fill: '#6366f1', strokeWidth: 0 }} name="Alia Visitors" />
-                <Line yAxisId="right" type="monotone" dataKey="noorVisitors" stroke="#10b981" strokeWidth={5} dot={{ r: 6, fill: '#10b981', strokeWidth: 0 }} name="Noor Visitors" />
+                <Line yAxisId="right" type="monotone" dataKey="aliaVisitors" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#6366f1', strokeWidth: 0 }} name="Alia Visitors" />
+                <Line yAxisId="right" type="monotone" dataKey="noorVisitors" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }} name="Noor Visitors" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
         </section>
 
         {/* 3. Consolidated Performance Indices */}
-        <section className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-sm space-y-12">
-          <div className="flex items-center gap-5">
-            <div className="p-5 bg-slate-900 rounded-[1.5rem] shadow-xl shadow-slate-200">
-              <Activity className="w-8 h-8 text-white" />
+        <section className="bg-white rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 border border-slate-100 shadow-sm space-y-10 md:space-y-12">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-5">
+            <div className="p-4 md:p-5 bg-slate-900 rounded-[1.2rem] md:rounded-[1.5rem] shadow-xl shadow-slate-200">
+              <Activity className="w-6 h-6 md:w-8 md:h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic leading-none">Operational Metrics</h2>
+              <h2 className="text-2xl md:text-4xl font-black tracking-tighter text-slate-900 italic leading-none">Operational Metrics</h2>
               <div className="flex items-center gap-2 mt-2">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Cross-Branch Analysis</p>
+                <p className="text-[9px] md:text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] md:tracking-[0.3em]">Cross-Branch Analysis</p>
               </div>
             </div>
           </div>
