@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Khaleel Employee Dashboard
 
-# Run and deploy your AI Studio app
+## How to Deploy to GitHub Pages
 
-This contains everything you need to run your app locally.
+This project is built with **React** and **Vite**, which means it must be "built" before it can be hosted. You cannot simply host the files in this repository directly.
 
-View your app in AI Studio: https://ai.studio/apps/0edccb52-d171-48ab-a9b2-4e9c13823f5d
+### Recommended: Automated Deployment (GitHub Actions)
+I have already set up a GitHub Action for you. To use it:
 
-## Run Locally
+1. **Push your code** to the `main` branch.
+2. Go to your repository on GitHub.
+3. Click on the **Settings** tab.
+4. Click on **Pages** in the left sidebar.
+5. Under **Build and deployment** > **Source**, change the setting to **"GitHub Actions"**.
+6. GitHub will now automatically build and update your site every time you push code!
 
-**Prerequisites:**  Node.js
+### Troubleshooting 404 Errors
+If you see a 404 error for `main.tsx`:
+- Ensure you have pushed the latest changes to GitHub.
+- Check the **Actions** tab in your repository to make sure the "Deploy to GitHub Pages" build finished successfully.
+- Go to **Settings > Pages** and make sure it says **"Your site is live at..."** with the correct URL.
 
+### Manual Deployment (If needed)
+If you prefer to deploy manually from your computer:
+1. Run `npm install`
+2. Run `npm run build`
+3. The production-ready files will be created in the `dist/` folder. You would host the contents of **that folder**, not the whole repository.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Why you saw errors:
+Browsers cannot understand `.tsx` files. They only understand `.js` files. The "MIME type" and "404" errors you saw occur because the browser was trying to load the raw source code instead of the compiled version.
