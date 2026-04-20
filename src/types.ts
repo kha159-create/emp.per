@@ -24,3 +24,18 @@ export interface MallStats {
   daysActive: number;
   avgDailySales: number;
 }
+
+export interface AttendanceRecord {
+  date: string;
+  day: string;
+  status: string;
+  schedule: string;
+  login: string;
+  logout: string;
+  totalHours: string;
+  workingHours: string;
+  late: string;
+  earlyDeparture: string;
+  overtime: string;
+  mall: 'Al-Aliya Mall' | 'Al-Noor Mall';
+}

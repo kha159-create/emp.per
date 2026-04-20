@@ -11,21 +11,24 @@ import {
   ComposedChart,
   Line,
   Bar,
-  Cell
+  BarChart,
+  Cell,
+  LabelList
 } from 'recharts';
 import { 
-  History,
   LayoutDashboard,
-  Users,
-  Activity,
-  MapPin,
   TrendingUp,
-  CreditCard
+  CreditCard,
+  Clock,
+  Calendar,
+  Zap,
+  Activity
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isWithinInterval } from 'date-fns';
 import { cn } from './lib/utils';
 import { RAW_SALES_DATA } from './data';
 import { BRANCH_MONTHLY_DATA } from './branchData';
+import { ATT_DATA } from './attendanceData';
 import { SalesEntry } from './types';
 
 export default function App() {
@@ -34,12 +37,27 @@ export default function App() {
     const aliaMallData = RAW_SALES_DATA.filter(d => d.mall === 'Al-Aliya Mall');
     const noorMallData = RAW_SALES_DATA.filter(d => d.mall === 'Al-Noor Mall');
 
+    // Ramadan interval: 2026-02-18 to 2026-03-19
+    const ramadanInterval = {
+      start: parseISO('2026-02-18'),
+      end: parseISO('2026-03-19')
+    };
+
+    const noorRamadanData = noorMallData.filter(d => 
+      isWithinInterval(parseISO(d.date), ramadanInterval)
+    );
+    const noorNonRamadanData = noorMallData.filter(d => 
+      !isWithinInterval(parseISO(d.date), ramadanInterval)
+    );
+
     const getMallStats = (data: SalesEntry[]) => {
       const sales = data.reduce((acc, curr) => acc + curr.sales, 0);
-      const days = data.length || 1;
+      const days = data.filter(d => d.sales > 0).length || 1;
+      const transactions = data.reduce((acc, curr) => acc + curr.transactions, 0);
       return {
         totalSales: sales,
-        avgDailySales: sales / days
+        avgDailySales: sales / days,
+        avgAtv: transactions > 0 ? (sales / transactions) : 0
       };
     };
 
@@ -47,11 +65,26 @@ export default function App() {
       totalSales,
       alia: getMallStats(aliaMallData),
       noor: getMallStats(noorMallData),
+      noorRamadan: getMallStats(noorRamadanData),
+      noorNonRamadan: getMallStats(noorNonRamadanData),
       all: RAW_SALES_DATA
     };
   }, []);
 
-  const chartData = useMemo(() => {
+  const averagesData = useMemo(() => [
+    { name: 'Alia Avg', value: stats.alia.avgDailySales, color: '#6366f1' },
+    { name: 'Noor (Reg)', value: stats.noorNonRamadan.avgDailySales, color: '#10b981' },
+    { name: 'Noor (Ram)', value: stats.noorRamadan.avgDailySales, color: '#f59e0b' }
+  ], [stats]);
+
+  const atvData = useMemo(() => [
+    { name: 'Alia ATV', value: stats.alia.avgAtv, color: '#6366f1' },
+    { name: 'Noor ATV', value: stats.noor.avgAtv, color: '#10b981' }
+  ], [stats]);
+
+  const formatWithCommas = (val: number) => Math.round(val).toLocaleString('en-US');
+
+    const chartData = useMemo(() => {
     return stats.all.map(d => ({
       ...d,
       displayDate: format(parseISO(d.date), 'MMM d'),
@@ -61,6 +94,27 @@ export default function App() {
       noorAtv: d.mall === 'Al-Noor Mall' ? (d.atv || (d.sales / (d.transactions || 1))) : null,
     }));
   }, [stats]);
+
+  const attStats = useMemo(() => {
+    const parseDuration = (dur: string) => {
+      if (!dur || dur === '-' || dur === '00:00') return 0;
+      const [h, m] = dur.split(':').map(Number);
+      return h + m / 60;
+    };
+
+    const aliaAtt = ATT_DATA.filter(d => d.mall === 'Al-Aliya Mall' && d.status === 'حاضر');
+    const noorAtt = ATT_DATA.filter(d => d.mall === 'Al-Noor Mall' && d.status === 'حاضر');
+
+    const getAvgHours = (data: typeof ATT_DATA) => {
+      const total = data.reduce((acc, curr) => acc + parseDuration(curr.totalHours), 0);
+      return data.length > 0 ? (total / data.length) : 0;
+    };
+
+    return [
+      { name: 'Alia Avg Hours', value: getAvgHours(aliaAtt), color: '#6366f1' },
+      { name: 'Noor Avg Hours', value: getAvgHours(noorAtt), color: '#10b981' }
+    ];
+  }, []);
 
   const branchSummary = useMemo(() => {
     const months = Array.from(new Set(BRANCH_MONTHLY_DATA.map(d => d.month))).sort();
@@ -192,33 +246,119 @@ export default function App() {
           </div>
         </section>
 
-        {/* 3. Simplified ATV Consistency only */}
-        <section className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm space-y-8">
-            <div className="flex items-center gap-4">
-               <div className="p-4 bg-indigo-50 rounded-2xl">
-                  <CreditCard className="w-6 h-6 text-indigo-600" />
-               </div>
-               <div>
-                  <h3 className="text-2xl font-black text-slate-800 tracking-tighter italic">ATV</h3>
-               </div>
+        {/* 3. Consolidated Performance Indices */}
+        <section className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-sm space-y-12">
+          <div className="flex items-center gap-5">
+            <div className="p-5 bg-slate-900 rounded-[1.5rem] shadow-xl shadow-slate-200">
+              <Activity className="w-8 h-8 text-white" />
             </div>
-            <div className="h-[300px] w-full bg-slate-50/50 rounded-[2rem] p-6 border border-slate-100">
-               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <XAxis dataKey="displayDate" hide />
-                  <Tooltip labelStyle={{ display: 'none' }} formatter={(v: number) => [`${formatNumber(v)}`, 'Record']} contentStyle={{ borderRadius: '24px', border: 'none shadow-2xl' }} />
-                  <Area type="stepBefore" dataKey="aliaAtv" stroke="#6366f1" strokeWidth={4} fillOpacity={0.05} fill="#6366f1" dot={false} name="Alia ATV" />
-                  <Area type="stepBefore" dataKey="noorAtv" stroke="#10b981" strokeWidth={4} fillOpacity={0.05} fill="#10b981" dot={false} name="Noor ATV" />
-                </AreaChart>
-               </ResponsiveContainer>
+            <div>
+              <h2 className="text-4xl font-black tracking-tighter text-slate-900 italic leading-none">Operational Metrics</h2>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Cross-Branch Analysis</p>
+              </div>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Daily Sales Averages */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-indigo-600" />
+                </div>
+                <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">Daily Averages</h3>
+              </div>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={averagesData} layout="vertical" margin={{ left: -30, right: 40 }}>
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 9, fontWeight: 900, fill: '#64748b' }} 
+                      width={80}
+                    />
+                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '20px', border: 'none' }} />
+                    <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={20}>
+                      <LabelList 
+                        dataKey="value" 
+                        position="right" 
+                        formatter={formatWithCommas} 
+                        style={{ fontSize: '10px', fontWeight: 900, fill: '#6366f1' }} 
+                        offset={10}
+                      />
+                      {averagesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* ATV Benchmarks */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-emerald-600" />
+                </div>
+                <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">ATV Benchmarks</h3>
+              </div>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={atvData} barSize={32}>
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900, fill: '#64748b' }} />
+                    <YAxis hide domain={[0, 'dataMax + 20']} />
+                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '20px', border: 'none' }} />
+                    <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                      <LabelList 
+                        dataKey="value" 
+                        position="top" 
+                        formatter={(v: number) => Math.round(v)} 
+                        style={{ fontSize: '10px', fontWeight: 900, fill: '#10b981' }} 
+                      />
+                      {atvData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Shift Averages */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                </div>
+                <h3 className="text-xs font-black uppercase text-slate-400 tracking-widest">Working Hours</h3>
+              </div>
+              <div className="space-y-3">
+                 {attStats.map((stat) => (
+                    <div key={stat.name} className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
+                       <div>
+                          <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-0.5">{stat.name}</p>
+                          <h4 className="text-lg font-black text-slate-900 leading-none">{stat.value.toFixed(1)} <span className="text-[10px] text-slate-300">Hrs</span></h4>
+                       </div>
+                       <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white shadow-sm" style={{ color: stat.color }}>
+                          <Clock className="w-3.5 h-3.5" />
+                       </div>
+                    </div>
+                 ))}
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* 4. Soft Executive Record Summary */}
         <footer className="pt-24 pb-24 space-y-16">
           <div className="flex flex-col items-center gap-6">
              <div className="h-px w-24 bg-slate-200" />
-             <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.8em] font-mono text-center">Medina Institutional Data Summary | Confidential Audit</p>
           </div>
         </footer>
 
